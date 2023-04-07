@@ -20,18 +20,13 @@ fn main() {
 
     let mut planner = FftPlanner::new();
 
-    for _times in 0..1 {
+    for _times in 0..10 {
         stream.play().unwrap();
         std::thread::sleep(std::time::Duration::from_millis(300));
 
         let mut complex_signal = buffer.lock().unwrap().iter()
             .map(|&r| Complex::new(r, 0.0)).collect::<Vec<Complex<f32>>>();
         
-        // Shoud be factorization
-        if complex_signal.len() % 2 == 0 {} else {
-            complex_signal.pop();
-        }
-
         let fft = planner.plan_fft_forward(complex_signal.len());
         fft.process(&mut complex_signal);
 
