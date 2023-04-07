@@ -31,7 +31,7 @@ fn input_device_init(host: &Host) -> Device {
 fn stream_config(input_device: &Device) -> cpal::StreamConfig {
     let mut stream_config: cpal::StreamConfig = input_device.default_input_config().unwrap().into();
     stream_config.channels = 1u16;
-    stream_config.sample_rate = cpal::SampleRate(10000);
+    stream_config.sample_rate = cpal::SampleRate(100000);
     return stream_config;
 }
 
