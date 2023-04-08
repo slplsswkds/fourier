@@ -6,6 +6,7 @@ use std::{
 use cpal::traits::StreamTrait;
 use num_complex::{Complex, ComplexFloat};
 use rustfft::{FftPlanner};
+use web_view::Content;
 
 fn main() {
     let idata = Vec::new();
@@ -31,7 +32,7 @@ fn main() {
         let fft = planner.plan_fft_forward(complex_signal.len());
         fft.process(&mut complex_signal);
 
-        //visualize_spectre(complex_signal);
+        visualize_spectre(complex_signal);
     }
 
     drop(stream);
@@ -40,16 +41,44 @@ fn main() {
 
 #[allow(dead_code)]
 fn visualize_spectre(data: Vec<Complex<f32>>) {
-    use std::io::Write;
-    use std::fs::File;
     
     println!("visualisation...");
-    let mut f = File::create("./amplitudes.txt").expect("Unable to create file");
-
     let len = data.len();
+    let mut amplitudes = Vec::new();
     for c in &data[0..len/2] {
-        //let mag = (c.re.powf(2.0).sqrt() + c.im.powf(2.0).sqrt()).sqrt();
         let amplitude = c.abs();
-        writeln!(f, "{}", amplitude).unwrap();
+        amplitudes.push(amplitude);
     }
+    //------------------------------------------------------------------------------------
+    use poloto::build;
+
+    let data: Vec<[i128; 2]> = amplitudes
+    .iter()
+    .enumerate()
+    .map(|(index, &value)| [index as i128, value as i128])
+    .collect();
+
+    let a = build::plot("label").line(data);
+
+    let img_svg_src = poloto::frame_build()
+        .data(a)
+        .build_and_label(("Fourier spectre", "x", "y"))
+        .append_to(poloto::header().light_theme())
+        .render_string().unwrap();
+
+    println!("{}", img_svg_src);
+
+    let mut html_content = "<!DOCTYPE html><html><head><title>SVG Viewer</title></head><body>".to_string();
+    html_content = html_content + &img_svg_src + "</body></html>";
+
+    web_view::builder()
+        .title("My Project")
+        .content(Content::Html(html_content))
+        .size(800, 500)
+        .resizable(false)
+        .debug(true)
+        .user_data(())
+        .invoke_handler(|_webview, _arg| Ok(()))
+        .run()
+        .unwrap();
 }

@@ -9,3 +9,7 @@ edition = "2021"
 cpal = {version = "0.15", features = ["jack"]}
 num-complex = "0.4"
 rustfft = "6.1"
+poloto = "18.0"
+usvg = "0.30"
+tiny-skia = "0.8.3"
+web-view = "0.7"
