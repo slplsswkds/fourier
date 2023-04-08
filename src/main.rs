@@ -32,24 +32,44 @@ fn main() {
         let fft = planner.plan_fft_forward(complex_signal.len());
         fft.process(&mut complex_signal);
 
-        visualize_spectre(complex_signal);
+        visualize_spectre(&complex_signal);
     }
 
     drop(stream);
-    
 }
 
 #[allow(dead_code)]
-fn visualize_spectre(data: Vec<Complex<f32>>) {
+fn visualize_spectre(data: &Vec<Complex<f32>>) {
     
     println!("visualisation...");
+    
+    let amplitudes = amplitudes(&data);
+    //------------------------------------------------------------------------------------
+    let html_content = plot_html(&amplitudes);
+
+    web_view::builder()
+        .title("My Project")
+        .content(Content::Html(html_content))
+        .size(800, 500)
+        .resizable(false)
+        .debug(true)
+        .user_data(())
+        .invoke_handler(|_webview, _arg| Ok(()))
+        .run()
+        .unwrap();
+}
+
+fn amplitudes(data: &Vec<Complex<f32>>) -> Vec<f32> {
     let len = data.len();
     let mut amplitudes = Vec::new();
     for c in &data[0..len/2] {
         let amplitude = c.abs();
         amplitudes.push(amplitude);
     }
-    //------------------------------------------------------------------------------------
+    return amplitudes;
+}
+
+fn plot_html(amplitudes: &Vec<f32>) -> String {
     use poloto::build;
 
     let data: Vec<[i128; 2]> = amplitudes
@@ -66,19 +86,7 @@ fn visualize_spectre(data: Vec<Complex<f32>>) {
         .append_to(poloto::header().light_theme())
         .render_string().unwrap();
 
-    println!("{}", img_svg_src);
-
     let mut html_content = "<!DOCTYPE html><html><head><title>SVG Viewer</title></head><body>".to_string();
     html_content = html_content + &img_svg_src + "</body></html>";
-
-    web_view::builder()
-        .title("My Project")
-        .content(Content::Html(html_content))
-        .size(800, 500)
-        .resizable(false)
-        .debug(true)
-        .user_data(())
-        .invoke_handler(|_webview, _arg| Ok(()))
-        .run()
-        .unwrap();
+    return html_content;
 }
